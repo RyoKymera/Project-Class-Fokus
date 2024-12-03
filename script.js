@@ -6,7 +6,18 @@ const banner = document.querySelector('.app__image')
 const titulo = document.querySelector('.app__title')
 const botones = document.querySelectorAll('.app__card-button')
 const inputEnfoqueMusica = document.querySelector('#alternar-musica')
-const musica = new Audio ('./sonidos/luna-rise-part-one.mp3')
+const botonIniciarPausar = document.querySelector('#start-pause')
+const textoIniciarPausar = document.querySelector('#start-pause span')
+const imgIniciarPausar = document.querySelector('#start-pause img')
+const tiempoEnPantalla = document.querySelector('#timer')
+
+const musica = new Audio('./sonidos/luna-rise-part-one.mp3');
+const audioPlay = new Audio('./sonidos/play.wav');
+const audioPausa = new Audio('./sonidos/pause.mp3');
+const audioTiempoFinalizado = new Audio('./sonidos/beep.mp3');
+
+let tiempoTranscurridoEnSegundos = 1500
+let idIntervalo = null
 
 musica.loop = true
 
@@ -19,22 +30,26 @@ inputEnfoqueMusica.addEventListener('change', ()=> {
 })
 
 botonCorto.addEventListener('click', () => {
+    tiempoTranscurridoEnSegundos = 300
     cambiarContexto('descanso-corto')
     botonCorto.classList.add('active')
 })
 
 botonEnfoque.addEventListener('click', () => {
+    tiempoTranscurridoEnSegundos = 1500
     cambiarContexto('enfoque')
     botonEnfoque.classList.add('active')
 })
 
 botonLargo.addEventListener('click', () => {
+    tiempoTranscurridoEnSegundos = 900
     cambiarContexto('descanso-largo')
     botonLargo.classList.add('active')
 })
 
 function cambiarContexto(contexto){
 
+    mostrarTiempo()
     botones.forEach(function(contexto){
         contexto.classList.remove('active')
     })
@@ -59,3 +74,46 @@ function cambiarContexto(contexto){
             break;
     }
 }
+
+const cuentaRegresiva = () => {
+    if(tiempoTranscurridoEnSegundos <= 0){
+        audioTiempoFinalizado.play();
+        alert('¡Tiempo finalizado!');
+        reiniciar();
+        return;
+    }
+
+
+    textoIniciarPausar.textContent = "Pausar"
+    imgIniciarPausar.setAttribute('src', './imagenes/pause.png')
+    tiempoTranscurridoEnSegundos -= 1;
+    console.log('Temporizador: ' + tiempoTranscurridoEnSegundos)
+    mostrarTiempo ()
+};
+
+botonIniciarPausar.addEventListener('click', iniciarOpausar);
+
+function iniciarOpausar() {
+    if(idIntervalo){
+        audioPausa.play();
+        reiniciar();
+        return;
+    }
+    audioPlay.play();
+    idIntervalo = setInterval(cuentaRegresiva, 1000);
+}
+
+function reiniciar() {
+    clearInterval(idIntervalo);
+    idIntervalo = null;
+    imgIniciarPausar.setAttribute('src', './imagenes/play_arrow.png')
+    textoIniciarPausar.textContent = "Comenzar"
+}
+
+function mostrarTiempo () {
+    const tiempo = new Date (tiempoTranscurridoEnSegundos * 1000)
+    const tiempoFormateado = tiempo.toLocaleTimeString('es-MX', {minute:'2-digit', second:'2-digit'})
+    tiempoEnPantalla.innerHTML = `${tiempoFormateado}`
+}
+
+mostrarTiempo ()
